@@ -439,7 +439,7 @@ impl DecoderLayer {
 
         // Check if this layer should be MoE or dense MLP
         let is_moe = !cfg.mlp_only_layers.contains(&layer_idx)
-            && (cfg.num_experts > 0 && (layer_idx + 1) % cfg.decoder_sparse_step == 0);
+            && (cfg.num_experts > 0 && (layer_idx + 1).is_multiple_of(cfg.decoder_sparse_step));
 
         let mlp = if is_moe {
             let vb = mapper.set_device(layer_idx, vb.pp("mlp"), loading_isq);
@@ -686,11 +686,12 @@ impl Qwen3VLMoETextModel {
             }
         }
         let xs = xs.to_device(&self.device)?;
-        let mut xs = xs.apply(&self.norm)?;
+        let xs = xs.apply(&self.norm)?;
+        let mut xs = extract_logits(&xs, context_lens)?;
         if let Some(t) = self.lm_head.quantized_act_type() {
             xs = xs.to_dtype(t)?;
         }
-        extract_logits(&self.lm_head.forward(&xs)?, context_lens)
+        self.lm_head.forward(&xs)
     }
 
     fn deepstack_process(

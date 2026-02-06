@@ -372,6 +372,12 @@ impl IsqModelLoader for AutoVisionLoader {
     fn immediate_isq_predicates(&self, config: &str) -> Result<Vec<Regex>> {
         Self::get_loader(config)?.immediate_isq_predicates(config)
     }
+    fn isq_layer_regexes_moqe(&self, config: &str) -> Result<Vec<Regex>> {
+        Self::get_loader(config)?.isq_layer_regexes_moqe(config)
+    }
+    fn immediate_isq_predicates_moqe(&self, config: &str) -> Result<Vec<Regex>> {
+        Self::get_loader(config)?.immediate_isq_predicates_moqe(config)
+    }
 }
 
 impl DeviceMappedModelLoader for AutoVisionLoader {
@@ -482,7 +488,7 @@ fn get_clip_vit_num_elems(cfg: &ClipConfig) -> usize {
 
 /// [`VisionLoader`] for a Phi 3 Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Phi3VLoader;
 
 pub struct Phi3VPrefixer;
@@ -764,7 +770,7 @@ impl DeviceMappedModelLoader for Phi3VLoader {
 
 /// [`VisionLoader`] for an Idefics 2 Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Idefics2Loader;
 
 pub struct Idefics2Prefixer;
@@ -1115,7 +1121,7 @@ impl DeviceMappedModelLoader for Idefics2Loader {
 
 /// [`VisionLoader`] for an LLaVANext Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct LLaVANextLoader;
 
 pub struct LLaVANextPrefixer;
@@ -1385,7 +1391,7 @@ impl DeviceMappedModelLoader for LLaVANextLoader {
 
 /// [`VisionLoader`] for an LLaVA Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct LLaVALoader;
 
 pub struct LLaVAPrefixer;
@@ -1647,7 +1653,7 @@ impl DeviceMappedModelLoader for LLaVALoader {
 
 /// [`VisionLoader`] for an Llama Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct VLlamaLoader;
 
 pub struct VLlamaPrefixer;
@@ -2033,7 +2039,7 @@ impl DeviceMappedModelLoader for VLlamaLoader {
 
 /// [`VisionLoader`] for an Qwen2-VL model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Qwen2VLLoader;
 
 pub struct Qwen2VLPrefixer;
@@ -2334,7 +2340,7 @@ impl DeviceMappedModelLoader for Qwen2VLLoader {
 
 /// [`VisionLoader`] for an Idefics 3 Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Idefics3Loader;
 
 pub struct Idefics3Prefixer;
@@ -2652,7 +2658,7 @@ impl DeviceMappedModelLoader for Idefics3Loader {
 
 /// [`VisionLoader`] for an MiniCpm-O model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct MiniCpmOLoader;
 
 pub struct MiniCpmOPrefixer;
@@ -2931,7 +2937,7 @@ impl DeviceMappedModelLoader for MiniCpmOLoader {
 
 /// [`VisionLoader`] for a Phi 4MM Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Phi4MMLoader;
 
 pub struct Phi4MMPrefixer;
@@ -3277,7 +3283,7 @@ impl DeviceMappedModelLoader for Phi4MMLoader {
 
 /// [`VisionLoader`] for an Qwen2_5VL model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Qwen2_5VLLoader;
 
 pub struct Qwen2_5VLPrefixer;
@@ -3573,7 +3579,7 @@ impl DeviceMappedModelLoader for Qwen2_5VLLoader {
 
 /// [`VisionLoader`] for an Gemma 3 model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Gemma3Loader;
 
 pub struct Gemma3Prefixer;
@@ -3912,7 +3918,7 @@ impl DeviceMappedModelLoader for Gemma3Loader {
 
 /// [`VisionLoader`] for an Mistral 3 model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Mistral3Loader;
 
 pub struct Mistral3Prefixer;
@@ -4237,7 +4243,7 @@ impl DeviceMappedModelLoader for Mistral3Loader {
 
 /// [`VisionLoader`] for an Llama Vision model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct VLlama4Loader;
 
 pub struct VLlama4Prefixer;
@@ -4259,7 +4265,8 @@ impl VisionModelLoader for VLlama4Loader {
         normal_loading_metadata: NormalLoadingMetadata,
         attention_mechanism: AttentionImplementation,
     ) -> Result<Box<dyn VisionModel + Send + Sync>> {
-        let cfg: crate::vision_models::llama4::Llama4Config = serde_json::from_str(config)?;
+        let mut cfg: crate::vision_models::llama4::Llama4Config = serde_json::from_str(config)?;
+        cfg.propagate_quantization_config();
         Ok(Box::new(Llama4Model::new(
             &cfg,
             vb,
@@ -4272,7 +4279,8 @@ impl VisionModelLoader for VLlama4Loader {
         false
     }
     fn get_config_repr(&self, config: &str) -> Result<Box<dyn Debug>> {
-        let cfg: crate::vision_models::llama4::Llama4Config = serde_json::from_str(config)?;
+        let mut cfg: crate::vision_models::llama4::Llama4Config = serde_json::from_str(config)?;
+        cfg.propagate_quantization_config();
         Ok(Box::new(cfg))
     }
     fn get_processor(
@@ -4641,7 +4649,7 @@ impl DeviceMappedModelLoader for VLlama4Loader {
 
 /// [`VisionLoader`] for an Gemma 3n model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Gemma3nLoader;
 
 #[allow(dead_code)]
@@ -5516,7 +5524,7 @@ impl DeviceMappedModelLoader for Gemma3nLoader {
 
 /// [`VisionLoader`] for an Qwen3VL model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Qwen3VLLoader;
 
 pub struct Qwen3VLPrefixer;
@@ -5812,7 +5820,7 @@ impl DeviceMappedModelLoader for Qwen3VLLoader {
 
 /// [`VisionLoader`] for a Qwen3VLMoE model.
 ///
-/// [`VisionLoader`]: https://ericlbuehler.github.io/mistral.rs/mistralrs/struct.VisionLoader.html
+/// [`VisionLoader`]: https://docs.rs/mistralrs/latest/mistralrs/struct.VisionLoader.html
 pub struct Qwen3VLMoELoader;
 
 pub struct Qwen3VLMoEPrefixer;
@@ -5898,6 +5906,30 @@ impl IsqModelLoader for Qwen3VLMoELoader {
     }
     fn immediate_isq_predicates(&self, config: &str) -> Result<Vec<Regex>> {
         self.isq_layer_regexes(config)
+    }
+    fn isq_layer_regexes_moqe(&self, _config: &str) -> Result<Vec<Regex>> {
+        Ok(vec![
+            Regex::new(r"lm_head\.(weight|bias)$")?,
+            // MLP (dense layers)
+            Regex::new(r"model\.language_model\.layers\.(\d+)\.mlp\.gate_proj\.(weight|bias)$")?,
+            Regex::new(r"model\.language_model\.layers\.(\d+)\.mlp\.up_proj\.(weight|bias)$")?,
+            Regex::new(r"model\.language_model\.layers\.(\d+)\.mlp\.down_proj\.(weight|bias)$")?,
+            // MoE router
+            Regex::new(r"model\.language_model\.layers\.(\d+)\.mlp\.gate\.(weight|bias)$")?,
+            // MoE experts
+            Regex::new(
+                r"model\.language_model\.layers\.(\d+)\.mlp\.experts\.(\d+)\.gate_proj\.(weight|bias)$",
+            )?,
+            Regex::new(
+                r"model\.language_model\.layers\.(\d+)\.mlp\.experts\.(\d+)\.up_proj\.(weight|bias)$",
+            )?,
+            Regex::new(
+                r"model\.language_model\.layers\.(\d+)\.mlp\.experts\.(\d+)\.down_proj\.(weight|bias)$",
+            )?,
+        ])
+    }
+    fn immediate_isq_predicates_moqe(&self, config: &str) -> Result<Vec<Regex>> {
+        self.isq_layer_regexes_moqe(config)
     }
 }
 

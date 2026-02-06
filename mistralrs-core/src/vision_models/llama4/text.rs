@@ -100,7 +100,7 @@ impl CausalSelfAttention {
             comm,
             mapper.set_device(layer_idx, vb.pp("o_proj"), loading_isq),
         )?;
-        let use_rope = (layer_idx + 1) % 4 != 0;
+        let use_rope = !(layer_idx + 1).is_multiple_of(4);
         let head_dim = cfg.hidden_size / cfg.num_attention_heads;
         let norm = if cfg.use_qk_norm && use_rope {
             let vb = mapper.set_device(layer_idx, vb, false);
@@ -417,7 +417,7 @@ impl Block {
         comm: &Arc<mistralrs_quant::Comm>,
         real_device: Device,
     ) -> Result<Self> {
-        let use_chunked_attention = (layer_idx + 1) % 4 != 0;
+        let use_chunked_attention = !(layer_idx + 1).is_multiple_of(4);
         let attn = CausalSelfAttention::new(
             vb.pp("self_attn"),
             cfg,
@@ -727,10 +727,10 @@ impl TextModel {
                 flash_params,
             )?;
         }
-        let mut x = x.to_device(&self.device)?;
-        x = self.ln_f.forward(&x)?;
-        x = self.lm_head.forward_autocast(&x)?;
-        extract_logits(&x, context_lens)
+        let x = x.to_device(&self.device)?;
+        let x = self.ln_f.forward(&x)?;
+        let x = extract_logits(&x, context_lens)?;
+        self.lm_head.forward_autocast(&x)
     }
 
     pub fn residual_tensors_m(&self, uvb_m: UnVarBuilder) -> Vec<(String, Tensor)> {
