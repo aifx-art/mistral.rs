@@ -4,7 +4,8 @@ use mistralrs::{IsqType, TextMessageRole, VisionMessages, VisionModelBuilder};
 #[tokio::main]
 async fn main() -> Result<()> {
     let model = VisionModelBuilder::new("Qwen/Qwen3-VL-4B-Instruct")
-        .with_isq(IsqType::Q4K)
+    //"Qwen/Qwen3-VL-8B-Instruct"
+     //  .with_isq(IsqType::Q4K)
         .with_logging()
         .build()
         .await?;
@@ -17,12 +18,12 @@ async fn main() -> Result<()> {
     };
     let image = image::load_from_memory(&bytes)?;
 
-    let messages = VisionMessages::new().add_image_message(
+    let messages = VisionMessages::new().add_message(        
         TextMessageRole::User,
-        "What is this?",
-        vec![image],
-        &model,
-    )?;
+        "What is good my mam?",
+    //    vec![image],
+        //&model,
+    );
 
     let response = model.send_chat_request(messages).await?;
 

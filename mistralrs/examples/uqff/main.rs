@@ -6,8 +6,10 @@ use mistralrs::{
 #[tokio::main]
 async fn main() -> Result<()> {
     let model = UqffTextModelBuilder::new(
-        "EricB/Phi-3.5-mini-instruct-UQFF",
-        vec!["phi3.5-mini-instruct-q8_0.uqff".into()],
+        //"EricB/Phi-3.5-mini-instruct-UQFF",
+        "EricB/Qwen3-14B-UQFF",
+        vec!["qwen314b-q8_0-0.uqff".into(), "qwen314b-q8_0-1.uqff".into()],
+        //vec!["phi3.5-mini-instruct-q8_0.uqff".into()],
     )
     .into_inner()
     .with_logging()
