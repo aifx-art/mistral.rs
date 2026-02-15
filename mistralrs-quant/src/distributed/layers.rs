@@ -11,8 +11,8 @@ use crate::{
     pertensor_fp8::pertensor_fp8_linear_b,
     should_apply_immediate_isq,
     utils::isq::{apply_immediate_isq, apply_immediate_isq_always},
-    AfqLayer, BnbLinear, DistributedKind, DummyLayer, FP8Linear, GgufMatMul, HqqLayer, MXFP4Layer,
-    QuantMethod, QuantMethodConfig, QuantizeOntoGuard, QuantizedConfig, QuantizedSerde,
+    AfqLayer, BnbLinear, DistributedKind, DummyLayer, F8Q8Linear, FP8Linear, GgufMatMul, HqqLayer,
+    MXFP4Layer, QuantMethod, QuantMethodConfig, QuantizeOntoGuard, QuantizedConfig, QuantizedSerde,
     QuantizedSerdeType, Shard, ShardedVarBuilder, UnquantLinear,
 };
 
@@ -316,6 +316,7 @@ impl QuantizedSerde for RowParallelLayer {
             QuantizedSerdeType::Hqq => HqqLayer::deserialize_ext_bias(data, device, guard)?,
             QuantizedSerdeType::Fp8 => FP8Linear::deserialize_ext_bias(data, device, guard)?,
             QuantizedSerdeType::Afq => AfqLayer::deserialize_ext_bias(data, device, guard)?,
+            QuantizedSerdeType::F8Q8 => F8Q8Linear::deserialize_ext_bias(data, device, guard)?,
         };
         Ok(Arc::new(Self {
             weight,
@@ -642,6 +643,7 @@ impl QuantizedSerde for ColumnParallelLayer {
             QuantizedSerdeType::Hqq => HqqLayer::deserialize_ext_bias(data, device, guard)?,
             QuantizedSerdeType::Fp8 => FP8Linear::deserialize_ext_bias(data, device, guard)?,
             QuantizedSerdeType::Afq => AfqLayer::deserialize_ext_bias(data, device, guard)?,
+            QuantizedSerdeType::F8Q8 => F8Q8Linear::deserialize_ext_bias(data, device, guard)?,
         };
         Ok(Arc::new(Self { weight, bias }))
     }
@@ -929,6 +931,7 @@ impl QuantizedSerde for ReplicatedLayer {
             QuantizedSerdeType::Hqq => HqqLayer::deserialize(data, device, comm, guard)?,
             QuantizedSerdeType::Fp8 => FP8Linear::deserialize(data, device, comm, guard)?,
             QuantizedSerdeType::Afq => AfqLayer::deserialize(data, device, comm, guard)?,
+            QuantizedSerdeType::F8Q8 => F8Q8Linear::deserialize(data, device, comm, guard)?,
         };
         Ok(Arc::new(Self(deserialized)))
     }
@@ -1826,6 +1829,16 @@ impl FusedExperts {
             let fused_down_proj =
                 blockwise_fp8_moe(down_fp8, down_scale, weight_block_size, vb.dtype())?;
 
+            (fused_gate_proj, fused_up_proj, fused_down_proj)
+        } else if !experts_vb.pp("0").contains_tensor("gate_proj.weight") {
+            // Handle the case where the layer is dummy (no tensors) during UQFF loading.
+            // Deserialize will handle it.
+            let fused_gate_proj: Arc<dyn QuantMethod> =
+                Arc::new(DummyLayer::new(QuantMethodConfig::Dummy)?);
+            let fused_up_proj: Arc<dyn QuantMethod> =
+                Arc::new(DummyLayer::new(QuantMethodConfig::Dummy)?);
+            let fused_down_proj: Arc<dyn QuantMethod> =
+                Arc::new(DummyLayer::new(QuantMethodConfig::Dummy)?);
             (fused_gate_proj, fused_up_proj, fused_down_proj)
         } else {
             // Per-expert format: load each expert individually and stack

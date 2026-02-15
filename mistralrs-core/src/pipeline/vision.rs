@@ -320,6 +320,7 @@ impl Loader for VisionLoader {
         };
 
         // If auto, convert to Map if not using nccl
+        let mut max_kv_tokens: Option<usize> = None;
         if use_nccl {
             mapper = DeviceMapSetting::DummyNccl {
                 nm_device: available_devices[0].clone(),
@@ -327,6 +328,7 @@ impl Loader for VisionLoader {
         } else if let DeviceMapSetting::Auto(mut params) = mapper.clone() {
             // We can promote to vision params if we get text params
             params = params.maybe_promote_to_vision();
+            max_kv_tokens = Some(params.max_seq_len() * params.max_batch_size());
 
             // Initial dtype
             let dtype = dtype.try_into_dtype(&available_devices.iter().collect::<Vec<_>>())?;
@@ -361,6 +363,7 @@ impl Loader for VisionLoader {
                                     AfqLayer::get_isq_type_from_uqff(Cow::Borrowed(artifact))?
                                         .pack_factor(dtype)
                                 }
+                                QuantizedSerdeType::F8Q8 => IsqType::F8Q8.pack_factor(dtype),
                             };
                             total_pack_factors += pack_factor;
                         }
@@ -544,6 +547,7 @@ impl Loader for VisionLoader {
             loading_isq = true;
         }
         loading_isq |= topology_requires_post_quant;
+        loading_isq |= self.config.from_uqff.is_some();
 
         if self.config.imatrix.is_some() && self.config.calibration_file.is_some() {
             anyhow::bail!(
@@ -816,6 +820,8 @@ impl Loader for VisionLoader {
                 &device,
                 &layer_devices,
                 silent,
+                None,
+                max_kv_tokens,
             )?;
             let cache_engine =
                 CacheEngine::new(model.config(), &cache_config, dtype, &device, layer_devices)?;

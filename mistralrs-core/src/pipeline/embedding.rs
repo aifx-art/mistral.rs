@@ -33,8 +33,8 @@ use crate::utils::{
 use crate::Modalities;
 use crate::SupportedModality;
 use crate::{
-    api_get_file, get_uqff_paths, DeviceMapSetting, PagedAttentionConfig, Pipeline, Topology,
-    TryIntoDType, GLOBAL_HF_CACHE,
+    get_uqff_paths, DeviceMapSetting, PagedAttentionConfig, Pipeline, Topology, TryIntoDType,
+    GLOBAL_HF_CACHE,
 };
 use anyhow::Context;
 use anyhow::Result;
@@ -290,6 +290,7 @@ impl Loader for EmbeddingLoader {
                                     AfqLayer::get_isq_type_from_uqff(Cow::Borrowed(artifact))?
                                         .pack_factor(dtype)
                                 }
+                                QuantizedSerdeType::F8Q8 => IsqType::F8Q8.pack_factor(dtype),
                             };
                             total_pack_factors += pack_factor;
                         }
@@ -455,6 +456,7 @@ impl Loader for EmbeddingLoader {
             in_situ_quant.is_some()
         };
         loading_isq |= topology_requires_post_quant;
+        loading_isq |= self.config.from_uqff.is_some();
 
         // Load onto the regular device if not using isq.
         // For immediate ISQ on discrete GPUs, load to CPU: the mapper will set the correct target

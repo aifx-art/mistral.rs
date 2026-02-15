@@ -26,6 +26,11 @@ const KERNELS: &[u8] = include_bytes!(concat!(
     env!("OUT_DIR"),
     "/mistralrs_paged_attention_ios.metallib"
 ));
+#[cfg(target_os = "tvos")]
+const KERNELS: &[u8] = include_bytes!(concat!(
+    env!("OUT_DIR"),
+    "/mistralrs_paged_attention_tvos.metallib"
+));
 
 #[derive(thiserror::Error, Debug)]
 pub enum MetalKernelError {
@@ -539,6 +544,7 @@ pub fn call_paged_attention_v1(
     q_stride: i32,
     kv_block_stride: i32,
     kv_head_stride: i32,
+    sinks: Option<(&Buffer, usize)>,
 ) -> Result<(), MetalKernelError> {
     const NUM_THREADS: usize = 256;
     const NUM_SIMD_LANES: usize = 32;
@@ -556,6 +562,7 @@ pub fn call_paged_attention_v1(
             Value::Bool(/* use_alibi */ alibi_storage_and_offset.is_some()),
         ),
         (30, Value::Bool(/* use_fp8_scales */ k_v_scale.is_some())),
+        (40, Value::Bool(/* use_sinks */ sinks.is_some())),
     ]));
 
     let pipeline = kernels.load_pipeline_with_constants(device, name, constants)?;
@@ -618,6 +625,9 @@ pub fn call_paged_attention_v1(
         core::mem::size_of_val(&kv_head_stride),
         &kv_head_stride as *const _ as *const c_void,
     );
+    if let Some((sinks_buf, sinks_offset)) = sinks {
+        encoder.set_buffer(18, Some(sinks_buf), sinks_offset);
+    }
 
     let thread_groups_count = MTLSize {
         width: num_heads as usize,
@@ -668,6 +678,7 @@ pub fn call_paged_attention_v2(
     q_stride: i32,
     kv_block_stride: i32,
     kv_head_stride: i32,
+    sinks: Option<(&Buffer, usize)>,
 ) -> Result<(), MetalKernelError> {
     const NUM_THREADS: usize = 256;
     const PARTITION_SIZE: usize = 512;
@@ -690,6 +701,7 @@ pub fn call_paged_attention_v2(
                 Value::Bool(/* use_alibi */ alibi_storage_and_offset.is_some()),
             ),
             (30, Value::Bool(/* use_fp8_scales */ k_v_scale.is_some())),
+            (40, Value::Bool(/* use_sinks */ sinks.is_some())),
         ]));
 
         let pipeline = kernels.load_pipeline_with_constants(device, name, constants)?;
@@ -756,6 +768,9 @@ pub fn call_paged_attention_v2(
             core::mem::size_of_val(&kv_head_stride),
             &kv_head_stride as *const _ as *const c_void,
         );
+        if let Some((sinks_buf, sinks_offset)) = sinks {
+            encoder.set_buffer(18, Some(sinks_buf), sinks_offset);
+        }
 
         let thread_groups_count = MTLSize {
             width: num_heads as usize,
@@ -789,7 +804,11 @@ pub fn call_paged_attention_v2(
         name.push_str(&format!("_nsl{NUM_SIMD_LANES}"));
         name.push_str(&format!("_ps{PARTITION_SIZE}"));
 
-        let pipeline = kernels.load_pipeline(device, name)?;
+        let reduce_constants = Some(ConstantValues::new(vec![(
+            40,
+            Value::Bool(/* use_sinks */ sinks.is_some()),
+        )]));
+        let pipeline = kernels.load_pipeline_with_constants(device, name, reduce_constants)?;
 
         let encoder = ep.encoder();
         let encoder: &ComputeCommandEncoderRef = encoder.as_ref();
@@ -810,6 +829,9 @@ pub fn call_paged_attention_v2(
             core::mem::size_of_val(&max_num_partitions),
             &max_num_partitions as *const _ as *const c_void,
         );
+        if let Some((sinks_buf, sinks_offset)) = sinks {
+            encoder.set_buffer(6, Some(sinks_buf), sinks_offset);
+        }
 
         let thread_groups_count = MTLSize {
             width: num_heads as usize,

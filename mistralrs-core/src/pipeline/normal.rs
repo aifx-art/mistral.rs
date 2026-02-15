@@ -13,7 +13,7 @@ use super::{
     AutoNormalLoader, DeepSeekV2Loader, DeepSeekV3Loader, GLM4Loader, GLM4MoeLiteLoader,
     GLM4MoeLoader, Gemma2Loader, GemmaLoader, GptOssLoader, GraniteMoeHybridLoader, LlamaLoader,
     MistralLoader, MixtralLoader, NormalLoaderType, Phi2Loader, Phi3Loader, Phi3_5MoELoader,
-    Qwen2Loader, Qwen3Loader, Qwen3MoELoader, SmolLm3Loader, Starcoder2Loader,
+    Qwen2Loader, Qwen3Loader, Qwen3MoELoader, Qwen3NextLoader, SmolLm3Loader, Starcoder2Loader,
 };
 use crate::amoe::AnyMoeExpertType;
 use crate::attention::ATTENTION_CHUNK_SIZE;
@@ -235,6 +235,7 @@ impl NormalLoaderBuilder {
             Some(NormalLoaderType::SmolLm3) => Box::new(SmolLm3Loader),
             Some(NormalLoaderType::GraniteMoeHybrid) => Box::new(GraniteMoeHybridLoader),
             Some(NormalLoaderType::GptOss) => Box::new(GptOssLoader),
+            Some(NormalLoaderType::Qwen3Next) => Box::new(Qwen3NextLoader),
             None => Box::new(AutoNormalLoader),
         };
         Ok(Box::new(NormalLoader {
@@ -352,11 +353,13 @@ impl Loader for NormalLoader {
         };
 
         // If auto, convert to Map if not using nccl
+        let mut max_kv_tokens: Option<usize> = None;
         if use_nccl || cfg!(feature = "ring") {
             mapper = DeviceMapSetting::DummyNccl {
                 nm_device: available_devices[0].clone(),
             };
         } else if let DeviceMapSetting::Auto(params) = mapper.clone() {
+            max_kv_tokens = Some(params.max_seq_len() * params.max_batch_size());
             // Initial dtype
             let dtype = dtype.try_into_dtype(&available_devices.iter().collect::<Vec<_>>())?;
 
@@ -390,6 +393,7 @@ impl Loader for NormalLoader {
                                     AfqLayer::get_isq_type_from_uqff(Cow::Borrowed(artifact))?
                                         .pack_factor(dtype)
                                 }
+                                QuantizedSerdeType::F8Q8 => IsqType::F8Q8.pack_factor(dtype),
                             };
                             total_pack_factors += pack_factor;
                         }
@@ -573,6 +577,7 @@ impl Loader for NormalLoader {
             loading_isq = true;
         }
         loading_isq |= topology_requires_post_quant;
+        loading_isq |= self.config.from_uqff.is_some();
 
         if self.config.imatrix.is_some() && self.config.calibration_file.is_some() {
             anyhow::bail!(
@@ -939,6 +944,8 @@ impl Loader for NormalLoader {
                     .map(Some)
                     .collect::<Vec<_>>(),
                 silent,
+                None,
+                max_kv_tokens,
             )?;
 
             let mut layer_devices = Vec::new();
